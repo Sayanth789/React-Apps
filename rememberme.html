@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Remember Password Demo</title>
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; display:flex; align-items:center; justify-content:center; height:100vh; background:#f5f7fb; margin:0; }
+    .card { background:white; padding:22px; border-radius:10px; box-shadow:0 6px 18px rgba(20,20,40,0.08); width:360px; }
+    h2 { margin:0 0 12px 0; font-size:1.25rem; }
+    label { display:block; margin-top:10px; font-size:0.9rem; color:#333; }
+    input[type="text"], input[type="password"] { width:100%; padding:10px; margin-top:6px; box-sizing:border-box; border-radius:6px; border:1px solid #d6d9e6; }
+    .row { display:flex; align-items:center; justify-content:space-between; margin-top:12px; }
+    button { padding:10px 12px; border-radius:8px; border:0; background:#2563eb; color:white; cursor:pointer; }
+    button.secondary { background:#6b7280; }
+    .msg { margin-top:12px; color:#083; font-weight:600; }
+    .warn { margin-top:12px; color:#b21; font-weight:600; }
+    small { color:#666; display:block; margin-top:8px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Simple Remember Demo</h2>
+
+    <label for="name">Username</label>
+    <input id="name" type="text" placeholder="Enter username" autocomplete="username" />
+
+    <label for="password">Password</label>
+    <input id="password" type="password" placeholder="Enter password" autocomplete="current-password" />
+
+    <div style="display:flex;gap:10px;align-items:center;margin-top:8px;">
+      <input id="remember" type="checkbox" />
+      <label for="remember" style="margin:0">Remember me (auto-login)</label>
+    </div>
+
+    <div class="row">
+      <button id="registerBtn">Register / Save</button>
+      <button id="loginBtn" class="secondary">Login</button>
+    </div>
+
+    <div id="output" aria-live="polite"></div>
+    <small>Demo stores salted password hash in localStorage. See comments in code.</small>
+  </div>
+
+  <script>
+  // ---------- Utilities ----------
+  function randomHex(bytes = 16) {
+    const arr = crypto.getRandomValues(new Uint8Array(bytes));
+    return Array.from(arr).map(b => b.toString(16).padStart(2,'0')).join('');
+  }
+
+  async function sha256Hex(str) {
+    const enc = new TextEncoder();
+    const data = enc.encode(str);
+    const hash = await crypto.subtle.digest('SHA-256', data);
+    const h = Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
+    return h;
+  }
+
+  // ---------- Storage helpers ----------
+  function userKey(username) { return 'user:' + username; }        // will store JSON {salt, pwdHash}
+  function tokenKey(token) { return 'token:' + token; }           // maps token -> username
+  const authTokenStorageKey = 'authToken';                        // the token kept in this browser
+
+  // ---------- DOM ----------
+  const nameInput = document.getElementById('name');
+  const passInput = document.getElementById('password');
+  const rememberCheckbox = document.getElementById('remember');
+  const registerBtn = document.getElementById('registerBtn');
+  const loginBtn = document.getElementById('loginBtn');
+  const output = document.getElementById('output');
+
+  // show messages
+  function show(msg, level='ok') {
+    output.className = level === 'ok' ? 'msg' : 'warn';
+    output.textContent = msg;
+  }
+
+  // ---------- Register / Save ----------
+  registerBtn.addEventListener('click', async () => {
+    const username = nameInput.value.trim();
+    const password = passInput.value;
+
+    if (!username || !password) {
+      show('Please enter a username and password to register.', 'warn');
+      return;
+    }
+
+    // create random salt and store salted hash
+    const salt = randomHex(12);
+    const pwdHash = await sha256Hex(salt + password);
+
+    const userObj = { salt, pwdHash, createdAt: new Date().toISOString() };
+    localStorage.setItem(userKey(username), JSON.stringify(userObj));
+
+    // handle "remember me": create a random token that maps to username
+    if (rememberCheckbox.checked) {
+      const token = randomHex(24);
+      // map token -> username
+      localStorage.setItem(tokenKey(token), username);
+      // store token in this browser to allow auto-login later
+      localStorage.setItem(authTokenStorageKey, token);
+    } else {
+      // if user unchecks remember, remove any existing token for this browser
+      localStorage.removeItem(authTokenStorageKey);
+    }
+
+    passInput.value = ''; // clear password input
+    show('Registered. You can now login. (Remember me set: ' + (rememberCheckbox.checked ? 'yes' : 'no') + ')');
+  });
+
+  // ---------- Login ----------
+  loginBtn.addEventListener('click', async () => {
+    const username = nameInput.value.trim();
+    const password = passInput.value;
+
+    if (!username || !password) {
+      show('Please enter username and password to login.', 'warn');
+      return;
+    }
+
+    const stored = localStorage.getItem(userKey(username));
+    if (!stored) {
+      show('No such user found. Please register first.', 'warn');
+      return;
+    }
+
+    const userObj = JSON.parse(stored);
+    const attemptHash = await sha256Hex(userObj.salt + password);
+
+    if (attemptHash === userObj.pwdHash) {
+      show('Login successful! Welcome, ' + username + '.');
+
+      // If user selected remember now, set token; otherwise remove any token for this browser
+      if (rememberCheckbox.checked) {
+        const token = randomHex(24);
+        localStorage.setItem(tokenKey(token), username);
+        localStorage.setItem(authTokenStorageKey, token);
+      } else {
+        localStorage.removeItem(authTokenStorageKey);
+      }
+
+      passInput.value = '';
+    } else {
+      show('Invalid password.', 'warn');
+    }
+  });
+
+  // ---------- Auto-login when username typed and token matches ----------
+  nameInput.addEventListener('blur', () => {
+    attemptAutoLogin();
+  });
+
+  async function attemptAutoLogin() {
+    const username = nameInput.value.trim();
+    if (!username) return;
+
+    const token = localStorage.getItem(authTokenStorageKey);
+    if (!token) return;
+
+    const mapped = localStorage.getItem(tokenKey(token));
+    if (mapped && mapped === username) {
+      // token in this browser belongs to this username -> auto-login
+      show('Welcome back — automatically logged in as "' + username + '".');
+      // (Do NOT autofill the real password; we only auto-login using token)
+      passInput.value = '';
+      rememberCheckbox.checked = true;
+    }
+  }
+
+  // run at load: if user had previously typed a name and token belongs to them, show
+  window.addEventListener('load', () => {
+    // optionally, if you want to auto-fill the username from a remembered token:
+    const token = localStorage.getItem(authTokenStorageKey);
+    if (token) {
+      const mapped = localStorage.getItem(tokenKey(token));
+      if (mapped) {
+        nameInput.value = mapped;
+        rememberCheckbox.checked = true;
+        attemptAutoLogin();
+      }
+    }
+  });
+
+  // ---------- Extra helper: delete stored data (for demo convenience) ----------
+  // Not shown in UI, but you can run in console: clearUser('alice') or clearAll()
+  window.clearUser = function(username) {
+    localStorage.removeItem(userKey(username));
+    // remove any tokens mapping to that username
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith('token:')) {
+        if (localStorage.getItem(k) === username) localStorage.removeItem(k);
+      }
+    }
+    if (localStorage.getItem(authTokenStorageKey) === null) {}
+  }
+
+  window.clearAll = function() { localStorage.clear(); show('Cleared localStorage.'); }
+
+  </script>
+</body>
+</html>

@@ -10,41 +10,17 @@ export function CheckoutPage({ cart  }) {
     const [paymentSummary, setPaymentSummary] = useState(null);
 
 
-    // useEffect(() => {
-    //     const fetchCheckoutData = async () => {
-    //         let response = await axios.get(
-    //             '/api/delivery-options?expand=estimateDeliveryTime'
-    //         );
-    //         setDeliveryOptions(response.data);
-
-    //         response = await axios.get('/api/payment-summary');
-    //         setPaymentSummary(response.data)
-    //     };
-        
-    //     fetchCheckoutData();
-    // }, []);
-
     useEffect(() => {
-        const fetchCheckoutData = () => {
-            // Mock delivery options
-            const mockDeliveryOptions = [
-                { id: 1, priceCents: 0, estimateDeliveryTimeMs: Date.now() + 5*24*60*60*1000 },
-                { id: 2, priceCents: 500, estimateDeliveryTimeMs: Date.now() + 2*24*60*60*1000 },
-            ];
-            setDeliveryOptions(mockDeliveryOptions);
+        const fetchCheckoutData = async () => {
+            let response = await axios.get(
+                '/api/delivery-options?expand=estimateDeliveryTime'
+            );
+            setDeliveryOptions(response.data);
 
-            // Mock payment summary
-            const mockPaymentSummary = {
-                totalItems: 3,
-                productCostCents: 3000,
-                shippingCostCents: 500,
-                totalCostBeforeTaxCents: 3500,
-                taxCents: 350,
-                totalCostCents: 3850
-            };
-            setPaymentSummary(mockPaymentSummary);
+            response = await axios.get('/api/payment-summary');
+            setPaymentSummary(response.data)
         };
-
+        
         fetchCheckoutData();
     }, []);
 

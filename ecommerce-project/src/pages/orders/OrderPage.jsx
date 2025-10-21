@@ -8,48 +8,13 @@ import './OrdersPage.css';
 export function OrdersPage({ cart }) {
   const [orders, setOrders] = useState([]);
 
-  // useEffect(() => {
-  //   axios.get('/api/orders?expand=products')
-  //     .then((response) => {
-  //       setOrders(response.data);
-  //     });
-  // }, []);
-
   useEffect(() => {
-    const mockOrders = [
-      {
-        id: 123456,
-        orderTimeMs: Date.now() - 3*24*60*60*1000,
-        totalCostCents: 4500,
-        products: [
-          {
-            product: { id: 1, name: "Product 1", image: "images/product1.png" },
-            quantity: 1,
-            estimatedDeliveryTimeMs: Date.now() + 2*24*60*60*1000
-          },
-          {
-            product: { id: 2, name: "Product 2", image: "images/product2.png" },
-            quantity: 2,
-            estimatedDeliveryTimeMs: Date.now() + 4*24*60*60*1000
-          }
-        ]
-      },
-      {
-        id: 789012,
-        orderTimeMs: Date.now() - 7*24*60*60*1000,
-        totalCostCents: 3000,
-        products: [
-          {
-            product: { id: 3, name: "Product 3", image: "images/product3.png" },
-            quantity: 1,
-            estimatedDeliveryTimeMs: Date.now() + 1*24*60*60*1000
-          }
-        ]
-      }
-    ];
-
-    setOrders(mockOrders);
+    axios.get('/api/orders?expand=products')
+      .then((response) => {
+        setOrders(response.data);
+      });
   }, []);
+
 
 
   return (

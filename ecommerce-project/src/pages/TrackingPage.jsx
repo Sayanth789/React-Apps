@@ -20,6 +20,7 @@ export function TrackingPage({ cart }) {
         fetchTrackingData();
 
     }, [orderId])
+    // Here we use the [orderId] instead of dependency array.
 
     if (!order) {
         return null;
@@ -28,8 +29,16 @@ export function TrackingPage({ cart }) {
         return orderProduct.productId === productId;
     });
 
-    // Here we use the [orderId] instead of dependency array.
+    const totalDelivertTimeMs = orderProduct.estimatedDeliveryTimeMs - orderTimeMs;
+    const tiemPassedMs  = dayjs().valueOf() - order.orderTimeMs;
 
+    let deliveryPercent = (tiemPassedMs / totalDelivertTimeMs ) * 100;
+
+    if (deliveryPercent > 100 ) {
+        deliveryPercent = 100;
+    }
+
+    
 
     return (
          <>
@@ -70,7 +79,9 @@ export function TrackingPage({ cart }) {
           </div>
 
           <div className="progress-bar-container">
-            <div className="progress-bar"></div>
+            <div className="progress-bar" style={{
+                width: `${deliveryPercent}%`
+            }}></div>
           </div>
         </div>
       </div>

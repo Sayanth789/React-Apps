@@ -5,8 +5,11 @@ import { HomePage  } from './pages/home/HomePage';
 import { CheckoutPage } from './pages/checkout/CheckoutPage';
 import { OrdersPage } from './pages/orders/OrderPage';
 import { TrackingPage } from './pages/TrackingPage';
-
+import { NotFoundPage } from '../pages/NotFoundPage';
+ 
 import './App.css'
+
+
 
 function App() {
   const [cart, setCart] = useState([]);

@@ -1,0 +1,95 @@
+/* ===========================
+   Tracking Page Styles
+   =========================== */
+
+.tracking-page {
+  display: flex;
+  justify-content: center;
+  padding: 40px 20px;
+  background-color: #f6f7fb;
+  min-height: 100vh;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+.order-tracking {
+  background-color: #fff;
+  width: 100%;
+  max-width: 600px;
+  border-radius: 16px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  padding: 30px;
+  text-align: center;
+}
+
+.back-to-orders-link {
+  display: inline-block;
+  text-decoration: none;
+  color: #0077ff;
+  margin-bottom: 16px;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.back-to-orders-link:hover {
+  color: #005bcc;
+}
+
+/* Delivery info */
+.delivery-date {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #333;
+}
+
+.product-info {
+  font-size: 15px;
+  color: #555;
+  margin-bottom: 6px;
+}
+
+/* Product image */
+.product-image {
+  width: 180px;
+  height: auto;
+  margin: 20px 0;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid #eee;
+}
+
+/* Progress labels */
+.progress-labels-container {
+  display: flex;
+  justify-content: space-between;
+  margin: 25px 0 8px;
+  font-weight: 500;
+}
+
+.progress-label {
+  color: #999;
+  flex: 1;
+  text-align: center;
+  position: relative;
+}
+
+.current-status {
+  color: #0077ff;
+  font-weight: 700;
+}
+
+/* Progress bar */
+.progress-bar-container {
+  width: 100%;
+  height: 8px;
+  background-color: #e1e4e8;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #0077ff, #5bc0de);
+  border-radius: 10px;
+  transition: width 0.4s ease;
+}

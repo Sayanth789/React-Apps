@@ -1,6 +1,6 @@
 import { formatMoney} from '../../utils/money';
 
-export function cartItemDetails({ cartItem }) {
+export function CartItemDetails({ cartItem }) {
     return (
         <>
          

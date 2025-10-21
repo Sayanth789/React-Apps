@@ -5,11 +5,11 @@ import './index.css'
 import App from './App.jsx'
 
 createRoot(document.getElementById('root')).render(
-  // <StrictMode>
+  <StrictMode>
     <BrowserRouter>
       <App />
     </BrowserRouter>
-  // </StrictMode>,
+  </StrictMode>,
 
-  // Removing the strict mode temperorarly
+  // Adding back the strictMode 
 )
